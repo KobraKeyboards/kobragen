@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -eu
+
+# KEYBOARD_NAME must match pcb name in ergogen yaml.
+KEYBOARD_NAME=$1
+OUTPUT_DIR=$2
+
+rm -rf "$OUTPUT_DIR"
+
+echo "### 1 - Ergogen export"
+ergogen "${KEYBOARD_NAME}.yaml" -o "$OUTPUT_DIR"
+
+echo "### 2 - kicad export dsn"
+/usr/lib/python2.7/dist-packages/kicad-automation/pcbnew_automation/export_dsn.py output/pcbs/$KEYBOARD_NAME.kicad_pcb output/pcbs/$KEYBOARD_NAME.dsn
+
+echo "### 3 - freerouting export ses"
+freerouting_cli -de output/pcbs/$KEYBOARD_NAME.dsn -do output/pcbs/$KEYBOARD_NAME.ses
+
+echo "### 4 - kicad combine unrouted pcb and ses to routed pcb"
+/usr/lib/python2.7/dist-packages/kicad-automation/pcbnew_automation/import_ses.py output/pcbs/$KEYBOARD_NAME.kicad_pcb output/pcbs/$KEYBOARD_NAME.ses --output-file output/pcbs/$KEYBOARD_NAME-routed.kicad_pcb
+
+# echo "##########"
+# echo "5 - run drc (design rule check)"
+# echo "##########"
+# ${container_cmd} run ${container_args} soundmonster/kicad-automation-scripts:latest /usr/lib/python2.7/dist-packages/kicad-automation/pcbnew_automation/run_drc.py output/pcbs/$KEYBOARD_NAME-routed.kicad_pcb output/pcbs/drc/
+# #pcbdraw also supports a style file as JSON
+
+# echo "##########"
+# echo "5"
+# echo "##########"
+# ${container_cmd} run ${container_args} yaqwsx/kikit:v0.7 pcbdraw --style builtin:set-white-enig.json output/pcbs/$KEYBOARD_NAME-routed.kicad_pcb images/left.png
+
+# echo "##########"
+# echo "6"
+# echo "##########"
+# ${container_cmd} run ${container_args} yaqwsx/kikit:v0.7 pcbdraw -b --style builtin:set-white-enig.json output/pcbs/$KEYBOARD_NAME-routed.kicad_pcb images/right.png
+
+# echo "##########"
+# echo "6 - kikit export jlcpcb gerber"
+# echo "##########"
+# ${container_cmd} run ${container_args} yaqwsx/kikit:v0.7 kikit fab jlcpcb --no-assembly output/pcbs/$KEYBOARD_NAME-routed.kicad_pcb production/pcb/$KEYBOARD_NAME
