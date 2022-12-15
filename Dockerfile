@@ -1,9 +1,10 @@
 # kobragen docker
 #
 # Commands:
-# docker build -t kobragen:latest  .
-# docker run --rm -it -v ${PWD}:/build kobragen:latest /bin/bash
-# docker run --rm -v ${PWD}:/build kobragen:latest kobragen example output
+# podman build -t kobragen:local .
+# podman build --no-cache -t ghcr.io/kobrakeyboards/kobragen:"$(git rev-parse --short HEAD)" -t ghcr.io/kobrakeyboards/kobragen:latest .
+# podman run --rm -it -v ${PWD}:/build kobragen:latest /bin/bash
+# podman run --rm -v ${PWD}:/build kobragen:latest kobragen example output
 
 FROM ubuntu:22.04@sha256:817cfe4672284dcbfee885b1a66094fd907630d610cab329114d036716be49ba
 
